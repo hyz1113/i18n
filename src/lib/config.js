@@ -6,7 +6,7 @@ const config = {
     fileTypes: [".ts", ".js",'.tsx','.jsx', '.vue'], // 读取的文件类型
     exclude: ['assets', 'node_modules', 'tradingView'], // 忽略的路径
     sourceLanguage: 'en', // 默认读取的词条key 源语言
-    // 重置文件路径
+    // 重置文件路径, 此方法可以省略
     reSitePath(str) {
         return {
             nPaths: [`./src/test/${str}`],
