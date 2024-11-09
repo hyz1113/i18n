@@ -72,6 +72,7 @@ class CollectWords {
 
     async start() {
         const branchName = await git.getBrandName(); // 测试的文件名
+        console.log(`branchName== ${branchName}`);
         const files = [];
         const root = path.resolve(process.cwd(), '');
 
@@ -130,7 +131,7 @@ class CollectWords {
                 // 导出新增的词条json文件
                 // 导出文件命名： keys_分支号
                 const fileName = branchName.split('_');
-                const newKeysFilePath = `${this.outputPath}/keys_${fileName[1]}.json`;
+                const newKeysFilePath = `${this.outputPath}/keys_${fileName[1] || branchName}.json`;
 
                 console.log('新词条个数: ' + newAllKey.length);
                 console.log('生成文件路径:' + newKeysFilePath);
