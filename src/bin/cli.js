@@ -100,7 +100,7 @@ class CollectWords {
         });
 
         // 旧词条【之前提交的提条】
-        const oldKeysPath = `${this.sourcePath}${this.sourceLanguage}.json`;
+        const oldKeysPath = `${this.sourcePath}/${this.sourceLanguage}.json`;
         fs.readFile(oldKeysPath, 'utf8', (err, data) => {
             if (err) {
                 console.error('读取文件出错:', err);
