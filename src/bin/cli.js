@@ -8,14 +8,15 @@ const { Command } = require('commander');
 const program = new Command();
 
 class CollectWords {
-    constructor() {
+    constructor(args = {}) {
         const {
             outputPath,
             paths,
             fileTypes,
             exclude,
             sourcePath,
-            sourceLanguage
+            sourceLanguage,
+            reSitePath,
         } = config.config;
         this.outputPath = outputPath;
         this.paths = paths;
@@ -23,6 +24,12 @@ class CollectWords {
         this.exclude = exclude;
         this.sourcePath = sourcePath;
         this.sourceLanguage = sourceLanguage;
+        if (reSitePath) { // 有需要动态重置path
+            const {nPaths,nSourcePath, nOutputPath} = reSitePath(args);
+            this.outputPath = nOutputPath;
+            this.paths = nPaths;
+            this.sourcePath = nSourcePath;
+        }
     }
 
     checkFileType (fileName, types) {
@@ -150,8 +157,9 @@ program
     .description('收集品牌对应词条的命令行工具')
     .option('-n, --name <type>', '品牌名')
     .action((options) => {
-        console.log(`${options.name || 'pu'}!`);
-        const collect = new CollectWords();
+        const brand = options.name || ''; // 获取需要查询的品牌名
+        console.log(`------- ${options.name} ------`);
+        const collect = new CollectWords(brand);
         collect.start();
     });
 
