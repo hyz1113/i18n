@@ -13,7 +13,8 @@
     "commander": "^12.1.0",
     "fs": "^0.0.1-security",
     "unescape-js": "^1.1.4",
-    "vue-i18n": "^10.0.4"
+    "vue-i18n": "^10.0.4",
+    "xlsx": "^0.18.5"
   },
   "devDependencies": {
     "jest": "^29.7.0"
