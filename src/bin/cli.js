@@ -3,9 +3,9 @@ const path = require('path');
 const unescapeJs = require('unescape-js');
 const git =  require('../lib/utils/git.js');
 const config = require('../lib/config.js');
-
 const { Command } = require('commander');
 const program = new Command();
+const utils = require('../lib/utils/index.js')
 
 class CollectWords {
     constructor(args = {}) {
@@ -24,9 +24,10 @@ class CollectWords {
         this.exclude = exclude;
         this.sourcePath = sourcePath;
         this.sourceLanguage = sourceLanguage;
+        this.brand = args;
         if (reSitePath) { // 有需要动态重置path
             const {nPaths,nSourcePath, nOutputPath} = reSitePath(args);
-            this.outputPath = nOutputPath;
+            this.outputPath = `${nOutputPath}`;
             this.paths = nPaths;
             this.sourcePath = nSourcePath;
         }
@@ -42,11 +43,18 @@ class CollectWords {
         return false;
     };
 
+    // 导出xlsx 文件
+    outPutXlsx (data, type) {
+        // 示例数组
+        utils.createBooksData(data, type);
+    }
+
     writeJSON(path, data) {
         let json = JSON.stringify(data, '', '\t');
         // 提取词条的时候，"" 做字符串转义 \"\" , '' 转义  \'\'
         json = json.replace(/_u0022/g,'\\u0022').replace(/_u0027/g,'\\u0027');
         fs.writeFileSync(path, json);
+        console.log('-----success!--');
     };
 
     // 异步读取文件
@@ -78,8 +86,7 @@ class CollectWords {
     }
 
     async start() {
-        const branchName = await git.getBrandName(); // 测试的文件名
-        console.log(`branchName== ${branchName}`);
+        const branchName = await git.getBrandName(); // 分支号
         const files = [];
         const root = path.resolve(process.cwd(), '');
 
@@ -123,7 +130,7 @@ class CollectWords {
 
                 // 本地新增的词条
                 words.forEach((word) => {
-                    if(!oldWords.includes(word)) {
+                    if(!oldWords.includes(word)) { // 对比之前的词条，去重
                         newWords.push(word);
                     }
                 });
@@ -131,19 +138,19 @@ class CollectWords {
                 // 需要添加的词条
                 let newAllKey = [];
                 newWords.forEach((word) => {
-                    // console.log('word==' + word);
                     newAllKey.push(word);
                 });
 
                 // 导出新增的词条json文件
                 // 导出文件命名： keys_分支号
                 const fileName = branchName.split('_');
-                const newKeysFilePath = `${this.outputPath}/keys_${fileName[1] || branchName}.json`;
+                const newKeysFilePath = `${this.outputPath}keys_${fileName[1] || branchName}.json`;
 
                 console.log('新词条个数: ' + newAllKey.length);
                 console.log('生成文件路径:' + newKeysFilePath);
 
                 this.writeJSON(newKeysFilePath, newAllKey);
+                this.outPutXlsx(newAllKey, this.brand);
             } catch (parseErr) {
                 console.error('解析JSON 时出错:', parseErr);
             }
