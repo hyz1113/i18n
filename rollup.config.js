@@ -7,7 +7,7 @@ import copy from 'rollup-plugin-copy';
 
 const paths = {
     input: {
-        root: "./src/bin/cli.js",
+        root: "src/cli.cjs",
     },
     output: {
         root: "dist/",
@@ -31,10 +31,10 @@ export default {
             runtimeHelpers: true,
         }),
         uglify(),
-        copy({
-            targets: [
-                { src: 'src/lib/*', dest: 'dist/lib' }
-            ]
-        })
+        // copy({
+        //     targets: [
+        //         { src: 'src/lib/*', dest: 'dist/lib' }
+        //     ]
+        // })
     ],
 };
