@@ -24,7 +24,7 @@
     "jest": "^29.7.0",
     "rollup": "^4.25.0",
     "rollup-plugin-babel": "^4.4.0",
-    "rollup-plugin-commonjs": "^10.1.0",
+    "rollup-plugin-copy": "^3.5.0",
     "rollup-plugin-node-resolve": "^5.2.0",
     "rollup-plugin-uglify": "^6.0.4"
   }

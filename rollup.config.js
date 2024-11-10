@@ -2,6 +2,8 @@ import resolve from "rollup-plugin-node-resolve";
 // import commonjs from "rollup-plugin-commonjs";
 import babel from "rollup-plugin-babel";
 import {uglify} from "rollup-plugin-uglify";
+import copy from 'rollup-plugin-copy';
+
 
 const paths = {
     input: {
@@ -29,5 +31,10 @@ export default {
             runtimeHelpers: true,
         }),
         uglify(),
+        copy({
+            targets: [
+                { src: 'src/lib/*', dest: 'dist/lib' }
+            ]
+        })
     ],
 };
