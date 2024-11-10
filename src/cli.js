@@ -2,10 +2,25 @@ const fs = require('fs');
 const path = require('path');
 const unescapeJs = require('unescape-js');
 const git =  require('../lib/utils/git.js');
-const config = require('../lib/config.js');
 const { Command } = require('commander');
 const program = new Command();
-const utils = require('../lib/utils/index.js')
+const XLSX = require('xlsx');
+
+const { exec } = require('child_process');
+
+// 读取文件基本配置
+let config = {
+    version: '0.0.1', // 导出的词条的版本号
+    paths: ["./src/"], // 读取文件的目录
+    sourcePath: "./src/source", // 旧的词条文件目录
+    outputPath: "./src/output", // 新的输入的词条文件目录
+    outputXlsxPath: "./src/excel", // 导出xlsx文件目录
+    fileTypes: [".ts", ".js",'.tsx','.jsx', '.vue'], // 读取的文件类型
+    exclude: ['assets', 'node_modules', 'tradingView'], // 忽略的目录
+    sourceLanguage: 'en', // 默认读取的词条key 源语言
+    supportLanguage: ['en', 'ar', 'ru', 'de', 'es', 'fr','hi', 'id','it', 'ja', 'ko', 'kk', 'mn', 'my', 'nl', 'pl','pt', 'th', 'vn', 'zh-CN', 'zh-TW']
+}
+
 
 class CollectWords {
     constructor(args = {}) {
@@ -38,6 +53,75 @@ class CollectWords {
             this.sourcePath = nSourcePath;
         }
     }
+
+
+    // 创建表头
+    getBooksHeader(args, supportLanguage, version) {
+        // 表头内容
+        const header = supportLanguage;
+        // 表格数据
+        const data = args.map((item, index) => {
+            const rowData = {
+                key: item,
+                version: version,
+            }
+            header.forEach(headerItem => {
+                rowData[headerItem] = ''
+            })
+            return rowData;
+        });
+        return [...data]; // 表头和表格数据合并
+    }
+
+    exists (path) {
+        let has;
+        try{
+            has = !!fs.statSync(path);
+        }catch (e) {
+            has = false;
+        }
+        return has;
+    }
+
+   // 导出表
+    async createBooksData(args, brand, {outputXlsxPath, supportLanguage, version}) {
+        const data = this.getBooksHeader(args, supportLanguage, version);
+        // 将数组转换为工作表
+        const worksheet = XLSX.utils.json_to_sheet(data);
+
+        // 创建一个新的工作簿
+        const workbook = XLSX.utils.book_new();
+
+        // 将工作表添加到工作簿
+        XLSX.utils.book_append_sheet(workbook, worksheet, 'Sheet1');
+
+        // 导出为 Excel 文件
+        const branchName = await git.getBrandName(); // 测试的文件名
+        const fileName = branchName.split('_');
+        let xlsFilePath = `${outputXlsxPath}/`;
+        if (Object.keys(brand).length ) {
+            xlsFilePath += `keys_${fileName[1] || branchName}_${brand}.xlsx`;
+        } else {
+            xlsFilePath += `keys_${fileName[1] || branchName}.xlsx`;
+        }
+
+
+        XLSX.writeFile(workbook, xlsFilePath);
+        console.log('create XLSX success! file path: ' + xlsFilePath);
+    }
+
+
+    getBrandName () {
+        return new Promise((resolve, reject) => {
+            exec('git symbolic-ref --short -q HEAD', function(error, stdout, stderr){
+                if(error) {
+                    reject(error);
+                }else{
+                    resolve(stdout.split('\n')[0]);
+                }
+            });
+        });
+    };
 
     checkFileType (fileName, types) {
         for(const index in types) {
@@ -86,7 +170,7 @@ class CollectWords {
     }
 
     async start() {
-        const branchName = await git.getBrandName(); // 分支号
+        const branchName = await this.getBrandName(); // 分支号
         const files = [];
         const root = path.resolve(process.cwd(), '');
 
@@ -151,7 +235,7 @@ class CollectWords {
 
                 this.writeJSON(newKeysFilePath, newAllKey);
                 // 导出xlsx 文件
-                utils.createBooksData(newAllKey, this.brand, {
+                this.createBooksData(newAllKey, this.brand, {
                     outputXlsxPath: this.outputXlsxPath,
                     supportLanguage: this.supportLanguage,
                     version: this.version
@@ -171,7 +255,14 @@ program
     .action((options) => {
         const brand = options.name || {}; // 获取需要查询的品牌名
         console.log(`------- 品牌 ${ Object.keys(brand).length ? brand : '--'} ------`);
+        // 检测自定义配置文件是否存在
+        const rc = path.resolve(process.cwd(), "./i18n-words-config.js");
+
         const collect = new CollectWords(brand);
+
+        if (collect.exists(rc)) {
+            config = require(rc) || {};
+        }
         collect.start();
     });
 
