@@ -1,17 +1,16 @@
 const XLSX = require('xlsx');
-const config = require('../config.js');
 const git = require("./git");
-
+const fs = require('fs');
 
 // 创建表头
-function getBooksHeader(args) {
+function getBooksHeader(args, supportLanguage, version) {
     // 表头内容
-    const header = config.config.supportLanguage;
+    const header = supportLanguage;
     // 表格数据
     const data = args.map((item, index) => {
         const rowData = {
             key: item,
-            version: config.config.version,
+            version: version,
         }
         header.forEach(headerItem => {
             rowData[headerItem] = ''
@@ -21,10 +20,19 @@ function getBooksHeader(args) {
     return [...data]; // 表头和表格数据合并
 }
 
+function exists (path) {
+    let has;
+    try{
+        has = !!fs.statSync(path);
+    }catch (e) {
+        has = false;
+    }
+    return has;
+}
 
 // 导出表
-async function createBooksData(args, brand) {
-    const data = getBooksHeader(args);
+async function createBooksData(args, brand, {outputXlsxPath, supportLanguage, version}) {
+    const data = getBooksHeader(args, supportLanguage, version);
     // 将数组转换为工作表
     const worksheet = XLSX.utils.json_to_sheet(data);
 
@@ -37,7 +45,13 @@ async function createBooksData(args, brand) {
     // 导出为 Excel 文件
     const branchName = await git.getBrandName(); // 测试的文件名
     const fileName = branchName.split('_');
-    const xlsFilePath = `${config.config.outputXlsx}/keys_${fileName[1] || branchName}_${brand}_.xlsx`;
+    let xlsFilePath = `${outputXlsxPath}/`;
+    if (Object.keys(brand).length ) {
+        xlsFilePath += `keys_${fileName[1] || branchName}_${brand}.xlsx`;
+    } else {
+        xlsFilePath += `keys_${fileName[1] || branchName}.xlsx`;
+    }
+
 
     XLSX.writeFile(workbook, xlsFilePath);
     console.log('create XLSX success! file path: ' + xlsFilePath);
@@ -46,4 +60,5 @@ async function createBooksData(args, brand) {
 
 module.exports = {
     createBooksData,
+    exists,
 }

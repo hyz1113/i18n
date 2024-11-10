@@ -17,6 +17,9 @@ class CollectWords {
             sourcePath,
             sourceLanguage,
             reSitePath,
+            outputXlsxPath,
+            version,
+            supportLanguage,
         } = config.config;
         this.outputPath = outputPath;
         this.paths = paths;
@@ -24,7 +27,10 @@ class CollectWords {
         this.exclude = exclude;
         this.sourcePath = sourcePath;
         this.sourceLanguage = sourceLanguage;
+        this.supportLanguage = supportLanguage;
+        this.outputXlsxPath = outputXlsxPath;
         this.brand = args;
+        this.version = version;
         if (reSitePath) { // 有需要动态重置path
             const {nPaths,nSourcePath, nOutputPath} = reSitePath(args);
             this.outputPath = `${nOutputPath}`;
@@ -42,12 +48,6 @@ class CollectWords {
         }
         return false;
     };
-
-    // 导出xlsx 文件
-    outPutXlsx (data, type) {
-        // 示例数组
-        utils.createBooksData(data, type);
-    }
 
     writeJSON(path, data) {
         let json = JSON.stringify(data, '', '\t');
@@ -144,13 +144,18 @@ class CollectWords {
                 // 导出新增的词条json文件
                 // 导出文件命名： keys_分支号
                 const fileName = branchName.split('_');
-                const newKeysFilePath = `${this.outputPath}keys_${fileName[1] || branchName}.json`;
+                const newKeysFilePath = `${this.outputPath}/keys_${fileName[1] || branchName}.json`;
 
                 console.log('新词条个数: ' + newAllKey.length);
                 console.log('生成文件路径:' + newKeysFilePath);
 
                 this.writeJSON(newKeysFilePath, newAllKey);
-                this.outPutXlsx(newAllKey, this.brand);
+                // 导出xlsx 文件
+                utils.createBooksData(newAllKey, this.brand, {
+                    outputXlsxPath: this.outputXlsxPath,
+                    supportLanguage: this.supportLanguage,
+                    version: this.version
+                });
             } catch (parseErr) {
                 console.error('解析JSON 时出错:', parseErr);
             }
@@ -164,8 +169,8 @@ program
     .description('收集品牌对应词条的命令行工具')
     .option('-n, --name <type>', '品牌名')
     .action((options) => {
-        const brand = options.name || ''; // 获取需要查询的品牌名
-        console.log(`------- ${options.name} ------`);
+        const brand = options.name || {}; // 获取需要查询的品牌名
+        console.log(`------- 品牌 ${ Object.keys(brand).length ? brand : '--'} ------`);
         const collect = new CollectWords(brand);
         collect.start();
     });
