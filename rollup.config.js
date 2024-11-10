@@ -14,7 +14,7 @@ const paths = {
     },
 };
 
-const fileName = `cli.js`;
+const fileName = `cli.cjs`;
 
 export default {
     input: `${paths.input.root}`,
