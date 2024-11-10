@@ -12,7 +12,7 @@ const paths = {
     },
 };
 
-const fileName = `fed-i18n-words.js`;
+const fileName = `cli.js`;
 
 export default {
     input: `${paths.input.root}`,
