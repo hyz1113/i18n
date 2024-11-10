@@ -3,12 +3,14 @@
   "version": "1.0.4",
   "description": "导出项目中的词条",
   "main": "src/bin/cli.js",
+  "type": "module",
   "scripts": {
-    "test": "node src/bin/cli.js"
+    "test": "node src/bin/cli.js",
+    "build": "rollup -c"
   },
   "keywords": [],
   "author": "",
-  "license": "ISC",
+  "license": "MIT",
   "dependencies": {
     "commander": "^12.1.0",
     "fs": "^0.0.1-security",
@@ -17,6 +19,13 @@
     "xlsx": "^0.18.5"
   },
   "devDependencies": {
-    "jest": "^29.7.0"
+    "@babel/core": "^7.26.0",
+    "@babel/preset-env": "^7.26.0",
+    "jest": "^29.7.0",
+    "rollup": "^4.25.0",
+    "rollup-plugin-babel": "^4.4.0",
+    "rollup-plugin-commonjs": "^10.1.0",
+    "rollup-plugin-node-resolve": "^5.2.0",
+    "rollup-plugin-uglify": "^6.0.4"
   }
 }
