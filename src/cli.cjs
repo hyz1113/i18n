@@ -4,16 +4,14 @@ const unescapeJs = require('unescape-js');
 const { Command } = require('commander');
 const program = new Command();
 const XLSX = require('xlsx');
-
 const { exec } = require('child_process');
-
 // 读取文件基本配置
 let config = {
     version: '0.0.1', // 导出的词条的版本号
-    paths: ["./src/"], // 读取文件的目录
+    paths: ["./src"], // 读取文件的目录
     sourcePath: "./src/source", // 旧的词条文件目录
-    outputPath: "./src/output", // 新的输入的词条文件目录
-    outputXlsxPath: "./src/excel", // 导出xlsx文件目录
+    outputPath: "./src/en/output", // 新的输入的词条文件目录
+    outputXlsxPath: "./src/en/excel", // 导出xlsx文件目录
     fileTypes: [".ts", ".js",'.tsx','.jsx', '.vue'], // 读取的文件类型
     exclude: ['assets', 'node_modules', 'tradingView'], // 忽略的目录
     sourceLanguage: 'en', // 默认读取的词条key 源语言
@@ -44,7 +42,7 @@ class CollectWords {
             outputXlsxPath,
             version,
             supportLanguage,
-        } = config.config;
+        } = config;
         this.outputPath = outputPath;
         this.paths = paths;
         this.fileTypes = fileTypes;
@@ -106,8 +104,12 @@ class CollectWords {
         }
 
 
-        XLSX.writeFile(workbook, xlsFilePath);
-        console.log('create XLSX success! file path: ' + xlsFilePath);
+        if(this.mkDirs(this.outputXlsxPath)) { // 目录存在 || 创建目录完成
+            XLSX.writeFile(workbook, xlsFilePath);
+            console.log('create XLSX success! file path: ' + xlsFilePath);
+        } else {
+            console.log('create xlsx fail !');
+        }
     }
 
 
@@ -133,12 +135,26 @@ class CollectWords {
         return false;
     };
 
+    mkDirs(dirname) {
+        if (fs.existsSync(dirname)) {
+            return true;
+        } else {
+            if (this.mkDirs(path.dirname(dirname))) {
+                fs.mkdirSync(dirname);
+                return true;
+            }
+        }
+    };
+
     writeJSON(path, data) {
         let json = JSON.stringify(data, '', '\t');
         // 提取词条的时候，"" 做字符串转义 \"\" , '' 转义  \'\'
         json = json.replace(/_u0022/g,'\\u0022').replace(/_u0027/g,'\\u0027');
-        fs.writeFileSync(path, json);
-        console.log('-----success!--');
+        console.log("this.outputPath ===" + this.outputPath);
+        if(this.mkDirs(this.outputPath)) { // 目录存在 || 创建目录完成
+            fs.writeFileSync(path, json);
+            console.log('-----success!--');
+        }
     };
 
     // 异步读取文件
@@ -258,11 +274,12 @@ program
         console.log(`------- 品牌 ${ Object.keys(brand).length ? brand : '--'} ------`);
         // 检测自定义配置文件是否存在
         const rc = path.resolve(process.cwd(), "./i18n-words-config.js");
-
+        let readConfig;
         if (exists(rc)) {
-            config = require(rc) || {};
+            readConfig = require(rc) || {};
+            readConfig = readConfig.config;
+            config = readConfig;
         }
-        // console.log('入参===' + JSON.stringify(config));
         const collect = new CollectWords(config, brand);
         collect.start();
     });
