@@ -2,7 +2,8 @@
   "name": "i18n-words",
   "version": "1.1.2",
   "description": "导出项目中的词条",
-  "main": "src/cli.js",
+  "main": "src/cli.cjs",
+  "type": "module",
   "scripts": {
     "test": "node src/cli.cjs",
     "build": "rollup -c"
