@@ -1,8 +1,8 @@
 import resolve from "rollup-plugin-node-resolve";
-// import commonjs from "rollup-plugin-commonjs";
+import commonjs from "rollup-plugin-commonjs";
 import babel from "rollup-plugin-babel";
 import {uglify} from "rollup-plugin-uglify";
-import copy from 'rollup-plugin-copy';
+// import copy from 'rollup-plugin-copy';
 
 
 const paths = {
@@ -25,7 +25,7 @@ export default {
     },
     plugins: [
         resolve(),
-        // commonjs(),
+        commonjs(),
         babel({
             exclude: "node_modules/**",
             runtimeHelpers: true,
