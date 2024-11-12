@@ -273,12 +273,13 @@ program
         const brand = options.name || {}; // 获取需要查询的品牌名
         console.log(`------- 品牌 ${ Object.keys(brand).length ? brand : '--'} ------`);
         // 检测自定义配置文件是否存在
-        const rc = path.resolve(process.cwd(), "./i18n-words-config.js");
+        const rc = path.resolve(process.cwd(), "./i18n-words-config.cjs");
         let readConfig;
         if (exists(rc)) {
             readConfig = require(rc) || {};
             readConfig = readConfig.config;
             config = readConfig;
+            console.log('获取到的配置===' + JSON.stringify(config));
         }
         const collect = new CollectWords(config, brand);
         collect.start();
